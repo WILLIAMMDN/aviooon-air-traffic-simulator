@@ -12,11 +12,11 @@ Proyecto de Cálculo Vectorial — Python + CustomTkinter + Matplotlib + SymPy.
 
 - 🛫 **Trayectorias paramétricas**: cada avión se define con expresiones
   matemáticas (`10*cos(t)`, `sin(t)`, …) evaluadas simbólicamente con SymPy.
-- 🚨 **Detección de colisiones**: distancia mínima entre cada par de
-  aeronaves; si bajan del umbral se marca el punto de conflicto en rojo y
-  se registra la alerta.
-- 🔊 **Alertas sonoras**: secuencia de beeps (winsound) al producirse una
-  colisión y pitido corto en alertas preventivas. Se puede silenciar.
+- 🚨 **Proximidad en tiempo real**: cada fotograma se mide la distancia
+  entre todos los pares con tres zonas — 🟡 contacto (<12 u), ⚠ preventiva
+  (<8 u) y 🚨 colisión (<3 u) — con marcador rojo y registro de eventos.
+- 🔊 **Alertas sonoras por evento**: sonido distinto para cada situación
+  (contacto, aproximación, colisión y separación). Se puede silenciar.
 - 🎨 **Gestión de vuelos**: agregar, **editar, eliminar y duplicar** aviones,
   elegir color, cargar presets y **guardar/cargar escenarios** en JSON.
 - 📊 **Métricas de vuelo**: distancia recorrida, altitud máxima y velocidad

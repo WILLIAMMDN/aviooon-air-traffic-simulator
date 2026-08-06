@@ -62,6 +62,31 @@ class TestCollisions(unittest.TestCase):
         self.assertAlmostEqual(sim.critical_collisions[0].t, 0.0, delta=0.2)
 
 
+class TestProximityLive(unittest.TestCase):
+    def test_pair_distances_at_juntas(self):
+        """Dos aviones en la misma trayectoria están a distancia ~0 en t dado."""
+        from aviooon.core.collision import pair_distances_at
+
+        sim = Simulation([
+            Aircraft("A", "t", "0", "5", 10),
+            Aircraft("B", "t", "0", "5", 10),
+        ], frames=100)
+        pairs = pair_distances_at(sim.trajectories, 3.0)
+        self.assertEqual(len(pairs), 1)
+        self.assertAlmostEqual(pairs[0][2], 0.0, delta=0.1)
+
+    def test_pair_distances_at_separados(self):
+        """Dos aviones paralelos a 50 u se mantienen separados."""
+        from aviooon.core.collision import pair_distances_at
+
+        sim = Simulation([
+            Aircraft("A", "t", "0", "5", 10),
+            Aircraft("B", "t", "50", "5", 10),
+        ], frames=100)
+        pairs = pair_distances_at(sim.trajectories, 3.0)
+        self.assertGreater(pairs[0][2], 40.0)
+
+
 class TestMetrics(unittest.TestCase):
     def test_circle_arc_length(self):
         """La distancia recorrida en una vuelta de radio 10 ≈ 2π·10."""

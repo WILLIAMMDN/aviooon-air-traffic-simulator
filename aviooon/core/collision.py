@@ -78,7 +78,7 @@ def detect_collisions(
                         b=trajectories[j].name,
                         t=t,
                         distance=distance,
-                        position=_position_at(trajectories[i], t),
+                        position=position_at(trajectories[i], t),
                         warning=False,
                     )
                 )
@@ -89,7 +89,7 @@ def detect_collisions(
                         b=trajectories[j].name,
                         t=t,
                         distance=distance,
-                        position=_position_at(trajectories[i], t),
+                        position=position_at(trajectories[i], t),
                         warning=True,
                     )
                 )
@@ -97,7 +97,7 @@ def detect_collisions(
     return events
 
 
-def _position_at(tr: Trajectory, t: float) -> np.ndarray:
+def position_at(tr: Trajectory, t: float) -> np.ndarray:
     """Posición interpolada de una trayectoria en el instante t."""
     return np.array(
         [
@@ -106,3 +106,20 @@ def _position_at(tr: Trajectory, t: float) -> np.ndarray:
             float(np.interp(t, tr.t, tr.z)),
         ]
     )
+
+
+def pair_distances_at(
+    trajectories: List[Trajectory], t: float
+) -> List[Tuple[int, int, float]]:
+    """Distancias actuales entre todos los pares de trayectorias en t.
+
+    Devuelve una lista de ``(i, j, distancia)`` con ``i < j``, calculada
+    en tiempo real para el monitoreo de proximidad durante la animación.
+    """
+    positions = [position_at(tr, t) for tr in trajectories]
+    pairs: List[Tuple[int, int, float]] = []
+    for i in range(len(positions)):
+        for j in range(i + 1, len(positions)):
+            d = float(np.linalg.norm(positions[i] - positions[j]))
+            pairs.append((i, j, d))
+    return pairs

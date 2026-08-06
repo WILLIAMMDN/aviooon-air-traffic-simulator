@@ -7,4 +7,4 @@ Paquete principal del proyecto. Divide el código en capas:
 - utils: utilidades transversales (sonido)
 """
 
-__version__ = "2.1.0"
+__version__ = "2.2.0"
