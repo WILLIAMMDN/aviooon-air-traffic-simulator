@@ -1,5 +1,10 @@
 # ✈ AVIOOON — Simulador de Tráfico Aéreo 3D
 
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)
+![Versión](https://img.shields.io/badge/versi%C3%B3n-2.2.0-22d3ee?style=flat-square&logo=semver&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-13%20passing-4ade80?style=flat-square&logo=pytest&logoColor=white)
+![Licencia](https://img.shields.io/badge/licencia-MIT-7c3aed?style=flat-square&logo=open-source-initiative&logoColor=white)
+
 Simulador interactivo de trayectorias aéreas en 3D. Define aeronaves con
 funciones paramétricas `x(t)`, `y(t)`, `z(t)` y observa su vuelo animado,
 con **detección de colisiones**, **alertas sonoras** y **métricas de vuelo**.
@@ -77,8 +82,11 @@ AVIOOON/
 ├── main.py                     # Punto de entrada
 ├── requirements.txt
 ├── README.md
+├── LICENSE                     # MIT
 ├── assets/
-│   └── demo.gif                # Demo animada (README)
+│   ├── demo.gif                # Demo animada (README)
+│   └── social-preview.png      # Portada para GitHub (1280x640)
+├── aviooon/                    # Paquete principal
 ├── aviooon/                    # Paquete principal
 │   ├── config.py               # Constantes y umbrales
 │   ├── core/                   # Lógica pura (sin UI)
@@ -97,7 +105,8 @@ AVIOOON/
 ├── scenarios/
 │   └── ejemplo.json            # Escenario de ejemplo
 ├── scripts/
-│   └── make_demo_gif.py        # Genera la demo animada del README
+│   ├── make_demo_gif.py        # Genera la demo animada del README
+│   └── make_social_preview.py  # Genera la portada de GitHub
 └── tests/
     ├── test_collision.py       # Motor: trayectorias, colisiones, métricas
     └── test_export.py          # Exportación CSV y GIF
