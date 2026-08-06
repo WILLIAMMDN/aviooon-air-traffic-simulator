@@ -2,7 +2,7 @@
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)
 ![Versión](https://img.shields.io/badge/versi%C3%B3n-2.2.0-22d3ee?style=flat-square&logo=semver&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-13%20passing-4ade80?style=flat-square&logo=pytest&logoColor=white)
+[![Tests](https://github.com/WILLIAMMDN/aviooon-air-traffic-simulator/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/WILLIAMMDN/aviooon-air-traffic-simulator/actions/workflows/tests.yml)
 ![Licencia](https://img.shields.io/badge/licencia-MIT-7c3aed?style=flat-square&logo=open-source-initiative&logoColor=white)
 
 Simulador interactivo de trayectorias aéreas en 3D. Define aeronaves con
@@ -117,6 +117,12 @@ AVIOOON/
 ```bash
 python -m unittest discover -s tests -v
 ```
+
+### Integración continua
+
+Cada `push` o `pull request` a `main` ejecuta los tests automáticamente en
+Python **3.10, 3.11 y 3.12** (GitHub Actions). El estado del último run se
+refleja en el badge de Tests de la cabecera — clic en él abre el historial.
 
 ---
 
