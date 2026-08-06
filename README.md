@@ -6,6 +6,12 @@ con **detección de colisiones**, **alertas sonoras** y **métricas de vuelo**.
 
 Proyecto de Cálculo Vectorial — Python + CustomTkinter + Matplotlib + SymPy.
 
+![Demo del simulador con colisión](assets/demo.gif)
+
+*Dos aeronaves orbitan en direcciones opuestas y colisionan a mitad de
+vuelo: la alerta muestra la distancia y el marcador rojo señala el punto
+de conflicto. (Generado con `python scripts/make_demo_gif.py`.)*
+
 ---
 
 ## ✨ Características
@@ -71,6 +77,8 @@ AVIOOON/
 ├── main.py                     # Punto de entrada
 ├── requirements.txt
 ├── README.md
+├── assets/
+│   └── demo.gif                # Demo animada (README)
 ├── aviooon/                    # Paquete principal
 │   ├── config.py               # Constantes y umbrales
 │   ├── core/                   # Lógica pura (sin UI)
@@ -88,6 +96,8 @@ AVIOOON/
 │       └── sound.py            # Alarmas sonoras (winsound)
 ├── scenarios/
 │   └── ejemplo.json            # Escenario de ejemplo
+├── scripts/
+│   └── make_demo_gif.py        # Genera la demo animada del README
 └── tests/
     ├── test_collision.py       # Motor: trayectorias, colisiones, métricas
     └── test_export.py          # Exportación CSV y GIF
