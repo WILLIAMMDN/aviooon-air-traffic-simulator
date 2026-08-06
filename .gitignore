@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+
+# Builds / artefactos
+build/
+dist/
+*.spec
+*.exe
+
+# Editores / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
