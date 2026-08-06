@@ -5,7 +5,7 @@ por el código.
 """
 
 APP_TITLE = "AVIOOON — Simulador de Tráfico Aéreo 3D"
-APP_VERSION = "2.0.0"
+APP_VERSION = "2.1.0"
 
 # --- Simulación ---
 SIM_FRAMES = 500          # fotogramas de la animación

@@ -21,8 +21,12 @@ Proyecto de Cálculo Vectorial — Python + CustomTkinter + Matplotlib + SymPy.
   elegir color, cargar presets y **guardar/cargar escenarios** en JSON.
 - 📊 **Métricas de vuelo**: distancia recorrida, altitud máxima y velocidad
   media por aeronave.
+- 📡 **Radar 2D**: vista cenital (XY) con anillos de alcance, posición
+  dinámica de cada avión y marcadores de colisión.
 - ⏯ **Controles de reproducción**: pausar, reanudar, reiniciar y velocidad
   ajustable (0.25x – 2x).
+- 🎞 **Exportación**: animación a **GIF** (o MP4 con `imageio-ffmpeg`) y
+  métricas + alertas a **CSV**.
 - 🖥 **Interfaz moderna** con CustomTkinter (tema oscuro).
 
 ---
@@ -75,7 +79,8 @@ AVIOOON/
 │   │   ├── collision.py        # Detección de colisiones
 │   │   └── simulation.py       # Motor: trayectorias + colisiones + métricas
 │   ├── data/
-│   │   └── scenario_manager.py # Presets, guardar y cargar JSON
+│   │   ├── scenario_manager.py # Presets, guardar y cargar JSON
+│   │   └── exporter.py         # Exportación a CSV / GIF / MP4
 │   ├── gui/
 │   │   ├── main_window.py      # Ventana de configuración
 │   │   └── simulation_window.py# Visor 3D animado con alertas
@@ -84,7 +89,8 @@ AVIOOON/
 ├── scenarios/
 │   └── ejemplo.json            # Escenario de ejemplo
 └── tests/
-    └── test_collision.py       # Pruebas unitarias
+    ├── test_collision.py       # Motor: trayectorias, colisiones, métricas
+    └── test_export.py          # Exportación CSV y GIF
 ```
 
 ## 🧪 Tests

@@ -6,6 +6,7 @@ y presenta métricas de vuelo calculadas por el motor.
 """
 from __future__ import annotations
 
+from tkinter import filedialog, messagebox
 from typing import List
 
 import customtkinter as ctk
@@ -13,6 +14,7 @@ import numpy as np
 from matplotlib import animation
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+from matplotlib.patches import Circle
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 from .. import __version__
@@ -21,6 +23,7 @@ from ..core.aircraft import Aircraft
 from ..core.collision import CollisionEvent
 from ..core.simulation import Simulation
 from ..core.trajectory import Trajectory, TrajectoryError
+from ..data.exporter import export_animation, export_metrics_csv
 from ..utils.sound import play_alarm, play_warning
 
 FONT = (FONT_FAMILY, 12)
@@ -58,6 +61,7 @@ class SimulationWindow(ctk.CTkToplevel):
 
         self._build_ui()
         self._setup_plot()
+        self._setup_radar()
         self._write_header_log()
         self._create_animation()
 
@@ -89,9 +93,18 @@ class SimulationWindow(ctk.CTkToplevel):
         self._canvas = FigureCanvasTkAgg(self.fig, master=viewport)
         self._canvas.get_tk_widget().pack(fill="both", expand=True)
 
+        # --- Radar 2D (vista cenital) ---
+        radar_frame = ctk.CTkFrame(body, fg_color=_BG, corner_radius=10)
+        radar_frame.grid(row=1, column=0, sticky="ew", padx=(0, 10), pady=(10, 0))
+        self._radar_fig = Figure(figsize=(7, 2.2), dpi=90, facecolor=_BG)
+        self._radar_ax = self._radar_fig.add_subplot(111)
+        self._radar_ax.set_facecolor(_BG)
+        self._radar_canvas = FigureCanvasTkAgg(self._radar_fig, master=radar_frame)
+        self._radar_canvas.get_tk_widget().pack(fill="both", expand=True)
+
         # --- Panel lateral ---
         panel = ctk.CTkFrame(body, fg_color=_PANEL, corner_radius=10)
-        panel.grid(row=0, column=1, sticky="ns", padx=(0, 0))
+        panel.grid(row=0, column=1, rowspan=2, sticky="ns", padx=(0, 0))
         panel.grid_columnconfigure(0, weight=1)
 
         self._build_controls(panel)
@@ -168,7 +181,21 @@ class SimulationWindow(ctk.CTkToplevel):
             parent, width=300, height=180, font=(FONT_FAMILY, 11),
             fg_color=_BG, text_color="#e5e7eb", state="disabled",
         )
-        self._log.grid(row=8, column=0, sticky="ew", padx=12, pady=(0, 12))
+        self._log.grid(row=8, column=0, sticky="ew", padx=12, pady=(0, 4))
+
+        export_row = ctk.CTkFrame(parent, fg_color="transparent")
+        export_row.grid(row=9, column=0, sticky="ew", padx=12, pady=(0, 4))
+        ctk.CTkButton(
+            export_row, text="🎞 GIF", font=FONT, command=self._export_gif,
+        ).pack(side="left", expand=True, fill="x", padx=(0, 6))
+        ctk.CTkButton(
+            export_row, text="🎬 MP4", font=FONT, fg_color="#7c3aed",
+            hover_color="#6d28d9", command=self._export_mp4,
+        ).pack(side="left", expand=True, fill="x", padx=(0, 6))
+        ctk.CTkButton(
+            export_row, text="📊 CSV", font=FONT, fg_color="#0e7490",
+            hover_color="#155e75", command=self._export_csv,
+        ).pack(side="left", expand=True, fill="x")
 
     # ------------------------------------------------------------------
     # Plot 3D
@@ -231,6 +258,7 @@ class SimulationWindow(ctk.CTkToplevel):
                     self._sounded.add(id(event))
                     self._on_collision_event(event)
 
+            self._update_radar(t)
             self._canvas.draw_idle()
             return []
 
@@ -313,6 +341,12 @@ class SimulationWindow(ctk.CTkToplevel):
         )
         self._marker_artists.append(marker)
 
+        radar_marker = self._radar_ax.scatter(
+            [x], [y], s=110, marker="X",
+            color=_RED if not event.warning else _YELLOW, zorder=6,
+        )
+        self._radar_markers.append(radar_marker)
+
         if event.warning:
             self._status.configure(text=event.describe(), text_color=_YELLOW)
             if self._sound_enabled:
@@ -339,6 +373,112 @@ class SimulationWindow(ctk.CTkToplevel):
             self._log_line("⚠  ¡Se detectaron colisiones en este escenario!")
 
     # ------------------------------------------------------------------
+    # Radar 2D (vista cenital)
+    # ------------------------------------------------------------------
+    def _setup_radar(self) -> None:
+        ax = self._radar_ax
+        ax.set_facecolor(_BG)
+        ax.set_title("RADAR — Vista cenital (XY)", color="#e5e7eb", fontsize=10)
+
+        xs = np.concatenate([tr.x for tr in self.sim.trajectories])
+        ys = np.concatenate([tr.y for tr in self.sim.trajectories])
+        pad = max(3.0, 0.15 * max(xs.max() - xs.min(), ys.max() - ys.min(), 1))
+        ax.set_xlim(xs.min() - pad, xs.max() + pad)
+        ax.set_ylim(ys.min() - pad, ys.max() + pad)
+        ax.set_aspect("equal", adjustable="box")
+        ax.tick_params(colors=_GRAY, labelsize=7)
+        ax.grid(True, alpha=0.15, color=_GRAY)
+        ax.set_xlabel("X", color=_GRAY, fontsize=8)
+        ax.set_ylabel("Y", color=_GRAY, fontsize=8)
+
+        # Anillos de alcance
+        center = ((xs.min() + xs.max()) / 2, (ys.min() + ys.max()) / 2)
+        radius = max(np.hypot(xs - center[0], ys - center[1]))
+        for r in np.linspace(radius / 3, radius, 3):
+            circle = Circle(center, r, fill=False, color=_GRAY, alpha=0.25,
+                            linewidth=0.7)
+            ax.add_patch(circle)
+
+        # Proyección de las trayectorias completas
+        for tr in self.sim.trajectories:
+            ax.plot(tr.x, tr.y, color=tr.color, alpha=0.25, linewidth=0.8)
+
+        # Puntos dinámicos (una sola colección scatter para rendimiento)
+        self._radar_scatter = ax.scatter([], [], s=45, zorder=5)
+        self._radar_labels = [
+            ax.text(0.0, 0.0, tr.name, fontsize=8, color=tr.color)
+            for tr in self.sim.trajectories
+        ]
+        self._radar_markers: list = []
+
+    def _update_radar(self, t: float) -> None:
+        offsets, colors = [], []
+        for tr in self.sim.trajectories:
+            pos = self._position(tr, t)
+            offsets.append([pos[0], pos[1]])
+            colors.append(tr.color)
+        self._radar_scatter.set_offsets(np.asarray(offsets))
+        self._radar_scatter.set_facecolors(colors)
+        for label, tr in zip(self._radar_labels, self.sim.trajectories):
+            pos = self._position(tr, t)
+            label.set_position((pos[0], pos[1]))
+        self._radar_canvas.draw_idle()
+
+    # ------------------------------------------------------------------
+    # Exportación
+    # ------------------------------------------------------------------
+    def _export_gif(self) -> None:
+        self._export_animation_dialog("GIF", ".gif", "animacion.gif")
+
+    def _export_mp4(self) -> None:
+        self._export_animation_dialog("MP4", ".mp4", "animacion.mp4")
+
+    def _export_animation_dialog(self, label: str, ext: str, initial: str) -> None:
+        path = filedialog.asksaveasfilename(
+            title=f"Exportar animación {label}", defaultextension=ext,
+            filetypes=[(f"Video {label}", f"*{ext}")], initialfile=initial,
+        )
+        if not path:
+            return
+
+        # Pausa la animación durante el render para no interferir con el timer.
+        was_paused = self._paused
+        if self.ani is not None:
+            self.ani.event_source.stop()
+        self._status.configure(text=f"🎞 Exportando {label}…", text_color=_GRAY)
+        self.update()
+        try:
+            export_animation(self.ani, path, fps=20)
+            self._status.configure(
+                text=f"✅ {label} exportado: {path}", text_color=_GREEN
+            )
+            self._log_line(f"{label} exportado: {path}")
+        except Exception as exc:
+            messagebox.showerror(f"Error al exportar {label}", str(exc))
+            self._status.configure(text=f"Exportación {label} fallida",
+                                   text_color=_RED)
+        finally:
+            if not was_paused and self.ani is not None:
+                self.ani.event_source.start()
+
+    def _export_csv(self) -> None:
+        path = filedialog.asksaveasfilename(
+            title="Exportar métricas", defaultextension=".csv",
+            filetypes=[("CSV", "*.csv")], initialfile="metricas.csv",
+        )
+        if not path:
+            return
+        try:
+            export_metrics_csv(self.sim.metrics, self.sim.collisions, path)
+            self._status.configure(text=f"✅ CSV exportado: {path}",
+                                   text_color=_GREEN)
+            self._log_line(f"CSV exportado: {path}")
+        except Exception as exc:
+            messagebox.showerror("Error al exportar CSV", str(exc))
+            self._status.configure(text="Exportación CSV fallida",
+                                   text_color=_RED)
+
+    # ------------------------------------------------------------------
     # Controles
     # ------------------------------------------------------------------
     def _toggle_play(self) -> None:
@@ -359,6 +499,9 @@ class SimulationWindow(ctk.CTkToplevel):
         for artist in self._marker_artists:
             artist.remove()
         self._marker_artists.clear()
+        for artist in self._radar_markers:
+            artist.remove()
+        self._radar_markers.clear()
         self._sounded.clear()
         self._log.configure(state="normal")
         self._log.delete("1.0", "end")
